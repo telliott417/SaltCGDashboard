@@ -5,7 +5,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const ALLOWED_DOMAIN = "candeo.church";
+const ALLOWED_DOMAIN = "candeochurch.com";
 
 export function isAllowedEmail(email) {
   return email && email.endsWith("@" + ALLOWED_DOMAIN);
