@@ -39,6 +39,12 @@ async function pcoGetAll(path) {
   return results;
 }
 
+async function pcoGetAllWithIncluded(path) {
+  const sep = path.includes("?") ? "&" : "?";
+  const data = await pcoGet(`${path}${sep}per_page=100`);
+  return { data: data.data || [], included: data.included || [] };
+}
+
 async function parseRAPNote(rawNote) {
   if (!rawNote || rawNote.trim().length < 10) return { rundown: null, additions: null, prayer: null, raw: rawNote };
   try {
@@ -78,12 +84,16 @@ async function sync() {
       const eventsRaw = await pcoGetAll(`/groups/${gid}/events`);
       eventsRaw.sort((a, b) => new Date(a.attributes.starts_at) - new Date(b.attributes.starts_at));
 
-      const membersRaw = await pcoGetAll(`/groups/${gid}/memberships`);
-      const memberCount = membersRaw.length;
-      const leaderNames = membersRaw
-        .filter(m => m.attributes.role === "leader")
-        .map(m => `${m.attributes.first_name} ${m.attributes.last_name}`)
-        .join(", ");
+      const membershipsData = await pcoGetAllWithIncluded(`/groups/${gid}/memberships?include=person`);
+const memberCount = membershipsData.data.length;
+const peopleMap = {};
+(membershipsData.included || []).forEach(p => {
+  peopleMap[p.id] = `${p.attributes.first_name} ${p.attributes.last_name}`;
+});
+const leaderNames = membershipsData.data
+  .filter(m => m.attributes.role === "leader")
+  .map(m => peopleMap[m.relationships.person.data.id] || "Unknown")
+  .join(", ");
 
       const eventDocs = [];
       const attendanceHistory = [];
