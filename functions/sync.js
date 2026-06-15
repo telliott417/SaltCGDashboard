@@ -21,7 +21,11 @@ const PCO_AUTH   = "Basic " + Buffer.from(`${PCO_APP_ID}:${PCO_SECRET}`).toStrin
 const DAYS_BEFORE_FLAG = 21;
 
 // ── FIREBASE ─────────────────────────────────────────────
-initializeApp({ credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS) });
+import { readFileSync } from "fs";
+import { resolve } from "path";
+
+const serviceAccount = JSON.parse(readFileSync(resolve("./service-account.json"), "utf8"));
+initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
 // ── ANTHROPIC ─────────────────────────────────────────────
