@@ -12,6 +12,9 @@ const PCO_BASE   = "https://api.planningcenteronline.com/groups/v2";
 const PCO_AUTH   = "Basic " + Buffer.from(`${PCO_APP_ID}:${PCO_SECRET}`).toString("base64");
 const DAYS_BEFORE_FLAG = 21;
 
+// Only sync groups with this prefix
+const GROUP_PREFIX = "TSC CG:";
+
 const serviceAccount = JSON.parse(readFileSync(resolve("./service-account.json"), "utf8"));
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
@@ -56,8 +59,9 @@ async function sync() {
   console.log("Starting Planning Center sync…");
   const startTime = Date.now();
 
-  const groupsRaw = await pcoGetAll("/groups");
-  console.log(`Found ${groupsRaw.length} groups\n`);
+  const allGroups = await pcoGetAll("/groups");
+  const groupsRaw = allGroups.filter(g => g.attributes.name?.startsWith(GROUP_PREFIX));
+  console.log(`Found ${allGroups.length} total groups, syncing ${groupsRaw.length} TSC CG groups\n`);
 
   const cutoff = new Date(Date.now() - DAYS_BEFORE_FLAG * 24 * 60 * 60 * 1000);
   const batch = db.batch();
@@ -68,13 +72,11 @@ async function sync() {
       const groupName = g.attributes.name || "";
       const shortName = groupName.replace(/^TSC CG:\s*/i, "");
 
-      console.log(`  → Processing: ${shortName}`);
+      console.log(`  → ${shortName}`);
 
-      console.log(`    fetching events...`);
       const eventsRaw = await pcoGetAll(`/groups/${gid}/events`);
       eventsRaw.sort((a, b) => new Date(a.attributes.starts_at) - new Date(b.attributes.starts_at));
 
-      console.log(`    fetching members...`);
       const membersRaw = await pcoGetAll(`/groups/${gid}/memberships`);
       const memberCount = membersRaw.length;
       const leaderNames = membersRaw
@@ -88,7 +90,6 @@ async function sync() {
 
       for (const ev of eventsRaw) {
         const evDate = new Date(ev.attributes.starts_at);
-        console.log(`    fetching attendance for event ${ev.id}...`);
         const attendanceRaw = await pcoGetAll(`/groups/${gid}/events/${ev.id}/attendances`);
         const attended = attendanceRaw.filter(a => a.attributes.attended).length;
         const noteRaw = ev.attributes.note || "";
@@ -145,7 +146,7 @@ async function sync() {
 
   await batch.commit();
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-  console.log(`\nSync complete in ${elapsed}s — ${groupsRaw.length} groups processed.`);
+  console.log(`\nSync complete in ${elapsed}s — ${groupsRaw.length} groups written to Firestore.`);
 }
 
 sync().catch(err => { console.error("Sync failed:", err.message); process.exit(1); });
