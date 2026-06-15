@@ -73,6 +73,7 @@ async function sync() {
       const shortName = groupName.replace(/^TSC CG:\s*/i, "");
 
       console.log(`  → ${shortName}`);
+      await new Promise(r => setTimeout(r, 300));
 
       const eventsRaw = await pcoGetAll(`/groups/${gid}/events`);
       eventsRaw.sort((a, b) => new Date(a.attributes.starts_at) - new Date(b.attributes.starts_at));
