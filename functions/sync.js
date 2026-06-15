@@ -68,9 +68,13 @@ async function sync() {
       const groupName = g.attributes.name || "";
       const shortName = groupName.replace(/^TSC CG:\s*/i, "");
 
+      console.log(`  → Processing: ${shortName}`);
+
+      console.log(`    fetching events...`);
       const eventsRaw = await pcoGetAll(`/groups/${gid}/events`);
       eventsRaw.sort((a, b) => new Date(a.attributes.starts_at) - new Date(b.attributes.starts_at));
 
+      console.log(`    fetching members...`);
       const membersRaw = await pcoGetAll(`/groups/${gid}/memberships`);
       const memberCount = membersRaw.length;
       const leaderNames = membersRaw
@@ -84,6 +88,7 @@ async function sync() {
 
       for (const ev of eventsRaw) {
         const evDate = new Date(ev.attributes.starts_at);
+        console.log(`    fetching attendance for event ${ev.id}...`);
         const attendanceRaw = await pcoGetAll(`/groups/${gid}/events/${ev.id}/attendances`);
         const attended = attendanceRaw.filter(a => a.attributes.attended).length;
         const noteRaw = ev.attributes.note || "";
