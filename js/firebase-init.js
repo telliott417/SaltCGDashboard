@@ -18,5 +18,5 @@ export const googleProvider = new GoogleAuthProvider();
 
 // Restrict sign-in to Candeo church emails only
 googleProvider.setCustomParameters({
-  hd: "candeo.church"
+  hd: "candeochurch.com"
 });
