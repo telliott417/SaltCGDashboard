@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salt Company — Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: var(--bg);
+  }
+  .login-card {
+    width: 100%; max-width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 40px 36px;
+    text-align: center;
+    animation: fadeUp 0.35s ease both;
+  }
+  .login-logo {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .login-logo svg { width: 24px; height: 24px; }
+  .login-title { font-size: 20px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: var(--text-2); margin-bottom: 32px; line-height: 1.5; }
+  .btn-google {
+    width: 100%; justify-content: center;
+    padding: 11px 16px; font-size: 14px;
+    border: 1px solid var(--border-md);
+    background: var(--surface);
+    gap: 10px;
+  }
+  .btn-google:hover { background: var(--bg); }
+  .btn-google svg { width: 18px; height: 18px; }
+  .login-notice {
+    margin-top: 20px; font-size: 11px; color: var(--text-3); line-height: 1.6;
+  }
+  .error-msg {
+    margin-top: 16px; padding: 10px 14px;
+    background: var(--danger-lt); color: var(--danger);
+    border-radius: var(--radius); font-size: 12px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 7v5l3 3"/>
+    </svg>
+  </div>
+  <h1 class="login-title">Salt Company</h1>
+  <p class="login-sub">Connection Group Dashboard<br>Staff access only</p>
+
+  <button class="btn btn-google" id="sign-in-btn">
+    <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+      <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+      <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+      <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+    </svg>
+    Sign in with Google
+  </button>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <p class="login-notice">Access restricted to <strong>@candeo.church</strong> accounts.<br>Contact your team lead if you need access.</p>
+</div>
+
+<script type="module">
+  import { signInWithGoogle, requireAuth } from "./js/auth.js";
+
+  requireAuth(
+    (user) => { window.location.href = "./dashboard.html"; },
+    () => { /* not signed in, stay on this page */ }
+  );
+
+  document.getElementById("sign-in-btn").addEventListener("click", async () => {
+    const btn = document.getElementById("sign-in-btn");
+    const err = document.getElementById("error-msg");
+    btn.disabled = true;
+    btn.textContent = "Signing in…";
+    err.style.display = "none";
+    try {
+      const user = await signInWithGoogle();
+      if (user) window.location.href = "./dashboard.html";
+    } catch (e) {
+      err.textContent = e.message || "Sign-in failed. Try again.";
+      err.style.display = "block";
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg> Sign in with Google`;
+    }
+  });
+</script>
+</body>
+</html>

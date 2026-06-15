@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salt Company — Connection Groups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .page-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+  }
+  .page-header-right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .attention-section { margin-bottom: 24px; }
+  .section-label {
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-3);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .attention-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .attention-card {
+    background: var(--surface);
+    border: 1px solid #EDCFCF;
+    border-left: 3px solid var(--danger);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .ac-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .ac-leaders { font-size: 12px; color: var(--text-2); }
+  .ac-reason { font-size: 11px; color: var(--danger); font-weight: 500; margin-top: 8px; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 320px; }
+  .search-wrap svg {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px; color: var(--text-3); pointer-events: none;
+  }
+  .search-wrap input {
+    font-family: var(--font-body);
+    width: 100%; padding: 8px 12px 8px 32px;
+    border: 1px solid var(--border-md); border-radius: var(--radius);
+    background: var(--surface); font-size: 13px; color: var(--text-1);
+    outline: none; transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--text-3); }
+
+  .filter-group { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filter-btn {
+    font-family: var(--font-body); font-size: 12px;
+    padding: 7px 14px; border-radius: var(--radius);
+    border: 1px solid var(--border-md); background: var(--surface);
+    color: var(--text-2); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .filter-btn:hover { background: var(--bg); color: var(--text-1); }
+  .filter-btn.active { background: var(--text-1); color: #fff; border-color: var(--text-1); }
+
+  .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .sort-label { font-size: 12px; color: var(--text-3); }
+  select.sort-select {
+    font-family: var(--font-body); font-size: 12px;
+    padding: 7px 28px 7px 10px;
+    border: 1px solid var(--border-md); border-radius: var(--radius);
+    background: var(--surface); color: var(--text-1);
+    cursor: pointer; outline: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A8A69E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+
+  table { table-layout: fixed; }
+  col.col-name    { width: 21%; }
+  col.col-leaders { width: 19%; }
+  col.col-status  { width: 11%; }
+  col.col-avg     { width: 7%; }
+  col.col-rate    { width: 17%; }
+  col.col-trend   { width: 12%; }
+  col.col-last    { width: 10%; }
+  col.col-mtgs    { width: 8%; }
+
+  .group-name { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+  .group-name-wrap { display: flex; align-items: center; gap: 8px; }
+  .flag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
+  .leaders-text { font-size: 12px; color: var(--text-2); }
+  .mono { font-family: var(--font-mono); font-size: 13px; }
+  .mtgs-num { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
+  .last-text { font-size: 12px; color: var(--text-2); font-family: var(--font-mono); }
+  .last-text.overdue { color: var(--danger); font-weight: 500; }
+
+  .attend-wrap { display: flex; align-items: center; gap: 8px; }
+  .attend-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .attend-bar-fill { height: 100%; border-radius: 2px; }
+  .attend-pct { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); min-width: 36px; text-align: right; }
+
+  .badge-low { background: #EAF0FB; color: #1A3A6B; }
+  .badge-low .badge-dot { background: #1A3A6B; }
+
+  .row-count { font-size: 12px; color: var(--text-3); margin-top: 10px; }
+  .no-results { text-align: center; padding: 48px; color: var(--text-3); font-size: 14px; }
+
+  .sort-arrow { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+  thead th.sorted .sort-arrow { opacity: 1; }
+
+  .sync-status { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 6px; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+      </svg>
+    </div>
+    <span class="nav-title">Salt Company</span>
+    <span class="nav-sub">/ Connection Groups</span>
+  </div>
+  <div class="nav-right">
+    <span class="sync-status"><span class="sync-dot"></span><span id="sync-label">Loading…</span></span>
+    <span class="nav-user" id="nav-user"></span>
+    <div class="nav-avatar" id="nav-avatar" title="Sign out" style="cursor:pointer">—</div>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Discipleship Team</div>
+      <h1 class="page-title">Connection Groups</h1>
+      <p class="page-meta" id="page-meta">Loading…</p>
+    </div>
+    <div class="page-header-right">
+      <button class="btn" id="sync-btn">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 7A6 6 0 0 1 12.5 4M13 7A6 6 0 0 1 1.5 10M13 2v3h-3M1 12v-3h3"/>
+        </svg>
+        Sync
+      </button>
+      <a href="admin.html" class="btn">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="7" r="2.5"/><path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.9 2.9l1.1 1.1M10 10l1.1 1.1M2.9 11.1L4 10M10 4l1.1-1.1"/>
+        </svg>
+        Admin
+      </a>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics" id="metrics">
+    <div class="metric-card card metric-accent fade-up" style="animation-delay:0.05s">
+      <div class="metric-label">Total groups</div>
+      <div class="metric-value" id="m-total">—</div>
+      <div class="metric-footer">Active this semester</div>
+    </div>
+    <div class="metric-card card fade-up" style="animation-delay:0.1s">
+      <div class="metric-label">Avg attendance rate</div>
+      <div class="metric-value" id="m-rate">—</div>
+      <div class="metric-footer">Across all groups</div>
+    </div>
+    <div class="metric-card card metric-danger fade-up" style="animation-delay:0.15s">
+      <div class="metric-label">Needs attention</div>
+      <div class="metric-value" id="m-flagged">—</div>
+      <div class="metric-footer">No report in 3+ weeks</div>
+    </div>
+    <div class="metric-card card fade-up" style="animation-delay:0.2s">
+      <div class="metric-label">Total members</div>
+      <div class="metric-value" id="m-members">—</div>
+      <div class="metric-footer">Across all groups</div>
+    </div>
+  </div>
+
+  <!-- ATTENTION PANEL -->
+  <div class="attention-section" id="attention-section" style="display:none">
+    <div class="section-label">Needs attention</div>
+    <div class="attention-cards" id="attention-cards"></div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="6" cy="6" r="4.5"/><path d="M10 10l2.5 2.5"/>
+      </svg>
+      <input type="text" id="search" placeholder="Search groups or leaders…" />
+    </div>
+    <div class="filter-group">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="flagged">Flagged</button>
+      <button class="filter-btn" data-filter="healthy">Healthy ≥65%</button>
+      <button class="filter-btn" data-filter="low">Low &lt;40%</button>
+    </div>
+    <div class="toolbar-right">
+      <span class="sort-label">Sort by</span>
+      <select class="sort-select" id="sorter">
+        <option value="name">Group name</option>
+        <option value="attendance">Avg attendance</option>
+        <option value="rate">Attendance rate</option>
+        <option value="members">Group size</option>
+        <option value="last">Last report</option>
+        <option value="meetings">Total meetings</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap card fade-up" style="animation-delay:0.25s">
+    <table>
+      <colgroup>
+        <col class="col-name"><col class="col-leaders"><col class="col-status">
+        <col class="col-avg"><col class="col-rate"><col class="col-trend">
+        <col class="col-last"><col class="col-mtgs">
+      </colgroup>
+      <thead>
+        <tr>
+          <th data-col="name">Group <span class="sort-arrow">↕</span></th>
+          <th data-col="leaders">Leaders <span class="sort-arrow">↕</span></th>
+          <th data-col="status">Status <span class="sort-arrow">↕</span></th>
+          <th data-col="avg">Avg <span class="sort-arrow">↕</span></th>
+          <th data-col="rate">Attend rate <span class="sort-arrow">↕</span></th>
+          <th>8-wk trend</th>
+          <th data-col="last">Last report <span class="sort-arrow">↕</span></th>
+          <th data-col="meetings">Mtgs <span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="8"><div class="state-center"><div class="spinner"></div><span>Loading groups…</span></div></td></tr>
+      </tbody>
+    </table>
+    <div id="no-results" class="no-results" style="display:none">No groups match your filters.</div>
+  </div>
+  <div class="row-count" id="row-count"></div>
+
+</div>
+
+<footer>Salt Company &middot; Connection Group Dashboard &middot; <span id="footer-sync">—</span></footer>
+
+<script type="module">
+  import { requireAuth, signOutUser } from "./js/auth.js";
+  import { db } from "./js/firebase-init.js";
+  import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  let GROUPS = [];
+  let filter = 'all', sortCol = 'name', sortAsc = true, query = '';
+
+  requireAuth(async (user) => {
+    const initials = user.displayName ? user.displayName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : '?';
+    document.getElementById('nav-avatar').textContent = initials;
+    document.getElementById('nav-user').textContent = user.displayName || user.email;
+    document.getElementById('nav-avatar').addEventListener('click', () => {
+      if (confirm('Sign out?')) signOutUser();
+    });
+    await loadGroups();
+  }, () => {
+    window.location.href = './index.html';
+  });
+
+  async function loadGroups() {
+    try {
+      const snap = await getDocs(collection(db, 'groups'));
+      GROUPS = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const metaDoc = await getDoc(doc(db, 'meta', 'sync'));
+      const lastSync = metaDoc.exists() ? metaDoc.data().lastSync?.toDate() : null;
+      const syncLabel = lastSync ? 'Synced ' + lastSync.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : 'Not yet synced';
+      document.getElementById('sync-label').textContent = syncLabel;
+      document.getElementById('footer-sync').textContent = syncLabel;
+
+      updateMetrics();
+      renderAttention();
+      render();
+
+      const total = GROUPS.length;
+      const totalMembers = GROUPS.reduce((s,g) => s + (g.members_count||0), 0);
+      document.getElementById('page-meta').textContent = `${total} groups · ${totalMembers} members`;
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('tbody').innerHTML = `<tr><td colspan="8"><div class="state-center">Failed to load groups. Check your connection.</div></td></tr>`;
+    }
+  }
+
+  function updateMetrics() {
+    const flagged = GROUPS.filter(g => g.flagged).length;
+    const avgRate = Math.round(GROUPS.reduce((s,g) => s + (g.attend_rate||0), 0) / (GROUPS.length||1));
+    const totalMembers = GROUPS.reduce((s,g) => s + (g.members_count||0), 0);
+    document.getElementById('m-total').textContent = GROUPS.length;
+    document.getElementById('m-rate').textContent = avgRate + '%';
+    document.getElementById('m-flagged').textContent = flagged;
+    document.getElementById('m-members').textContent = totalMembers;
+  }
+
+  function renderAttention() {
+    const flagged = GROUPS.filter(g => g.flagged);
+    const section = document.getElementById('attention-section');
+    if (!flagged.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    document.getElementById('attention-cards').innerHTML = flagged.map(g => `
+      <div class="attention-card">
+        <div class="ac-name">${g.short_name}</div>
+        <div class="ac-leaders">${g.leaders || '—'}</div>
+        <div class="ac-reason">⚠ Last report: ${g.last_report} — no submission in 3+ weeks</div>
+      </div>
+    `).join('');
+  }
+
+  function sparkSVG(data) {
+    if (!data || data.length < 2) return '<span style="color:var(--text-3);font-size:11px">—</span>';
+    const w=76, h=22, p=2;
+    const mn=Math.min(...data), mx=Math.max(...data), rng=mx-mn||1;
+    const pts = data.map((v,i) => {
+      const x = p + (i/(data.length-1))*(w-p*2);
+      const y = (h-p) - ((v-mn)/rng)*(h-p*2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const stroke = data[data.length-1] > data[0] ? '#2A5C45' : data[data.length-1] < data[0] ? '#8B1F1F' : '#A8A69E';
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" style="display:block"><polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  }
+
+  function attendBar(rate) {
+    const pct = Math.min(rate||0, 100);
+    const color = pct < 40 ? '#8B1F1F' : pct < 55 ? '#7A4210' : '#2A5C45';
+    return `<div class="attend-wrap">
+      <div class="attend-bar-bg"><div class="attend-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="attend-pct">${pct}%</span>
+    </div>`;
+  }
+
+  function statusBadge(g) {
+    if (g.flagged) return `<span class="badge badge-flag"><span class="badge-dot"></span>Flagged</span>`;
+    if ((g.attend_rate||0) >= 65) return `<span class="badge badge-ok"><span class="badge-dot"></span>Healthy</span>`;
+    if ((g.attend_rate||0) < 40) return `<span class="badge badge-low"><span class="badge-dot"></span>Low</span>`;
+    return `<span class="badge badge-warn"><span class="badge-dot"></span>Monitor</span>`;
+  }
+
+  function getFiltered() {
+    let d = [...GROUPS];
+    if (query) { const q=query.toLowerCase(); d=d.filter(g => (g.short_name||'').toLowerCase().includes(q)||(g.leaders||'').toLowerCase().includes(q)); }
+    if (filter==='flagged') d=d.filter(g=>g.flagged);
+    if (filter==='healthy') d=d.filter(g=>!g.flagged&&(g.attend_rate||0)>=65);
+    if (filter==='low') d=d.filter(g=>(g.attend_rate||0)<40);
+    d.sort((a,b) => {
+      const map = { name:'short_name', attendance:'avg_attendance', rate:'attend_rate', members:'members_count', last:'last_report', meetings:'total_meetings' };
+      const k = map[sortCol]||'short_name';
+      if (a[k]<b[k]) return sortAsc?-1:1;
+      if (a[k]>b[k]) return sortAsc?1:-1;
+      return 0;
+    });
+    return d;
+  }
+
+  function render() {
+    const data = getFiltered();
+    const tbody = document.getElementById('tbody');
+    const noRes = document.getElementById('no-results');
+    const rc = document.getElementById('row-count');
+    if (!data.length) {
+      tbody.innerHTML=''; noRes.style.display='block'; rc.textContent=''; return;
+    }
+    noRes.style.display='none';
+    tbody.innerHTML = data.map(g => `
+      <tr class="${g.flagged?'row-flagged':''}" style="cursor:pointer" onclick="window.location='group.html?id=${g.id}'">
+        <td><div class="group-name-wrap">${g.flagged?'<span class="flag-dot"></span>':''}<span class="group-name">${g.short_name||'—'}</span></div></td>
+        <td class="leaders-text">${g.leaders||'—'}</td>
+        <td>${statusBadge(g)}</td>
+        <td class="mono">${(g.avg_attendance||0).toFixed(1)}</td>
+        <td>${attendBar(g.attend_rate)}</td>
+        <td>${sparkSVG(g.sparkline)}</td>
+        <td><span class="last-text ${g.flagged?'overdue':''}">${g.last_report||'—'}</span></td>
+        <td class="mtgs-num">${g.total_meetings||0}</td>
+      </tr>
+    `).join('');
+    rc.textContent = `Showing ${data.length} of ${GROUPS.length} groups`;
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      filter = btn.dataset.filter;
+      render();
+    });
+  });
+  document.getElementById('sorter').addEventListener('change', e => { sortCol=e.target.value; render(); });
+  document.getElementById('search').addEventListener('input', e => { query=e.target.value; render(); });
+  document.querySelectorAll('thead th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      if (sortCol===th.dataset.col) { sortAsc=!sortAsc; } else { sortCol=th.dataset.col; sortAsc=true; }
+      document.getElementById('sorter').value = sortCol;
+      document.querySelectorAll('thead th').forEach(h=>{h.classList.remove('sorted');h.querySelector('.sort-arrow').textContent='↕';});
+      th.classList.add('sorted');
+      th.querySelector('.sort-arrow').textContent = sortAsc?'↑':'↓';
+      render();
+    });
+  });
+
+  document.getElementById('sync-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('sync-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Syncing…';
+    try {
+      const res = await fetch('https://us-central1-salt-cg-dashboard.cloudfunctions.net/syncPCO');
+      if (!res.ok) throw new Error('Sync failed');
+      await loadGroups();
+    } catch(e) {
+      alert('Sync failed: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7A6 6 0 0 1 12.5 4M13 7A6 6 0 0 1 1.5 10M13 2v3h-3M1 12v-3h3"/></svg> Sync`;
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "salt-cg-sync",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "sync": "node functions/sync.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "firebase-admin": "^12.0.0",
+    "node-fetch": "^3.3.2"
+  }
+}
