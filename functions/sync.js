@@ -7,7 +7,7 @@
 //   PCO_SECRET     — your Planning Center Personal Access Token secret
 //   GOOGLE_APPLICATION_CREDENTIALS — path to Firebase service account JSON
 //   ANTHROPIC_API_KEY — for RAP note parsing
-
+import "dotenv/config";
 import fetch from "node-fetch";
 import Anthropic from "@anthropic-ai/sdk";
 import { initializeApp, cert } from "firebase-admin/app";
